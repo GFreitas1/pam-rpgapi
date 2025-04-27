@@ -7,13 +7,13 @@ using RpgApi.Models;
 
 namespace RpgApi.Models
 {
-    public class Arma
+    public class PersonagemHabilidade
     {
-        public int Id { get; set; }
-        public string Nome { get; set; } = string.Empty;
-        public int Dano { get; set; }
         public Personagem? Personagem { get; set; } = null!;
-        public int? PersonagemId { get; set; }
+        public int PersonagemId { get; set; }
+        public int HabilidadeId { get; set; }
+        public Habilidade? Habilidade { get; set; } = null!;
+
     }
     
 }

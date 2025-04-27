@@ -15,25 +15,10 @@ namespace RpgApi.Controllers
     {
         private readonly DataContext _context;
 
+
         public ArmasController(DataContext context)
         {
             _context = context;
-        }
-
-         [HttpGet("{id}")] //Buscar pelo id
-        public async Task<IActionResult> GetSingle(int id)
-        {
-            try
-            {
-                Arma a = await _context.TB_ARMAS.FirstOrDefaultAsync(aBusca => aBusca.Id == id);
-                //using Microsoft.EntityFrameworkCore;
-
-                return Ok(a);
-            }
-            catch (System.Exception ex)
-            {
-                return BadRequest(ex.Message + " - " + ex.InnerException);
-            }
         }
 
         [HttpGet("GetAll")]
@@ -41,13 +26,12 @@ namespace RpgApi.Controllers
         {
             try
             {
-                //using System.Collections.Generic;
                 List<Arma> lista = await _context.TB_ARMAS.ToListAsync();
                 return Ok(lista);
             }
             catch (System.Exception ex)
             {
-                return BadRequest(ex.Message + " - " + ex.InnerException);
+                return BadRequest(ex.Message + ex.InnerException);
             }
         }
 
@@ -55,9 +39,14 @@ namespace RpgApi.Controllers
         public async Task<IActionResult> Add(Arma novaArma)
         {
             try
-            {               
-                if(novaArma.Dano == 0)
-                  throw new Exception("O Dano da arma não pode ser 0");
+            {
+                if (novaArma.Dano == 0)
+                    return BadRequest("Dano da Arma não pode ser 0");
+
+                Personagem p = await _context.TB_PERSONAGENS.FirstOrDefaultAsync(p => p.Id == novaArma.PersonagemId);
+
+                if(p == null)
+                    return BadRequest("Personagem não encontrado com o id informado");
 
                 await _context.TB_ARMAS.AddAsync(novaArma);
                 await _context.SaveChangesAsync();
@@ -66,7 +55,7 @@ namespace RpgApi.Controllers
             }
             catch (System.Exception ex)
             {
-                return BadRequest(ex.Message + " - " + ex.InnerException);
+                return BadRequest(ex.Message + ex.InnerException);
             }
         }
 
@@ -76,32 +65,49 @@ namespace RpgApi.Controllers
             try
             {
                 _context.TB_ARMAS.Update(novaArma);
-                int linhaAfetadas = await _context.SaveChangesAsync();
+                int linhasAfetadas = await _context.SaveChangesAsync();
 
-                return Ok(linhaAfetadas);
+                return Ok(linhasAfetadas);
             }
             catch (System.Exception ex)
             {
-                return BadRequest(ex.Message + " - " + ex.InnerException);
+                return BadRequest(ex.Message + ex.InnerException);
             }
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetSingle(int id)
+        {
+            try
+            {
+                Arma a = await _context.TB_ARMAS
+                            .FirstOrDefaultAsync(aBusca => aBusca.Id == id);
+
+                return Ok(a);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message + ex.InnerException);
+            }
+        }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                Arma aRemover = await _context.TB_ARMAS.FirstOrDefaultAsync(p => p.Id == id);
+                Arma? aRemover = await _context.TB_ARMAS.FirstOrDefaultAsync(a => a.Id == id);
 
                 _context.TB_ARMAS.Remove(aRemover);
                 int linhaAfetadas = await _context.SaveChangesAsync();
-
                 return Ok(linhaAfetadas);
             }
             catch (System.Exception ex)
             {
-                return BadRequest(ex.Message + " - " + ex.InnerException);
+                return BadRequest(ex.Message + ex.InnerException);
             }
+           
         }
     }
 }

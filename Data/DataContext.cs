@@ -2,12 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using RpgApi.Models;
 using RpgApi.Models.Enuns;
-using Microsoft.EntityFrameworkCore;
 using RpgApi.Utils;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace RpgApi.Data{
+namespace RpgApi.Data
+{
     public class DataContext : DbContext
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options)
@@ -15,21 +18,27 @@ namespace RpgApi.Data{
 
         }
 
-        public DbSet<Personagem> TB_PERSONAGENS { get; set; }
-        public DbSet<Arma> TB_ARMAS { get; set; }
-        public DbSet<Usuario> TB_USUARIOS { get; set; }
+         public DbSet<Personagem> TB_PERSONAGENS { get; set; }
+         public DbSet<Arma> TB_ARMAS { get; set; }
+         public DbSet<Usuario> TB_USUARIOS { get; set; }
+         public DbSet<Habilidade> TB_HABILIDADES { get; set; }
+         public DbSet<PersonagemHabilidade> TB_PERSONAGENS_HABILIDADES { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Personagem>().ToTable("TB_PERSONAGENS");
             modelBuilder.Entity<Arma>().ToTable("TB_ARMAS");
             modelBuilder.Entity<Usuario>().ToTable("TB_USUARIOS");
+            modelBuilder.Entity<Habilidade>().ToTable("TB_HABILIDADES");
+            modelBuilder.Entity<PersonagemHabilidade>().ToTable("TB_PERSONAGENS_HABILIDADES");
+            
+            modelBuilder.Entity<Personagem>()
+                .HasOne(p => p.Arma)
+                .WithOne(a => a.Personagem)
+                .HasForeignKey<Arma>(a => a.PersonagemId)
+                .IsRequired();
 
-            modelBuilder.Entity<Usuario>()
-                .HasMany(e => e.Personagens)
-                .WithOne(e => e.Usuario)
-                .HasForeignKey(e => e.UsuarioId)
-                .IsRequired(false);
 
             modelBuilder.Entity<Personagem>().HasData
             (
@@ -42,35 +51,75 @@ namespace RpgApi.Data{
                 new Personagem() { Id = 7, Nome = "Radagast", PontosVida = 100, Forca = 25, Defesa = 11, Inteligencia = 35, Classe = ClasseEnum.Mago, UsuarioId = 1}
             );
 
-             modelBuilder.Entity<Arma>().HasData
+            
+
+            modelBuilder.Entity<Arma>().HasData
             (
-              new Arma() { Id = 1, Nome = "Arco e Flecha", Dano = 35},
-              new Arma() { Id = 2, Nome = "Espada", Dano = 33},
-              new Arma() { Id = 3, Nome = "Machado", Dano = 31 },
-              new Arma() { Id = 4, Nome = "Punho", Dano = 30},
-              new Arma() { Id = 5, Nome = "Chicote", Dano = 34},
-              new Arma() { Id = 6, Nome = "Foice", Dano = 33 },
-              new Arma() { Id = 7, Nome = "Cajado", Dano = 32}
+                new Arma() { Id = 1, Nome = "Espada de Madeira", Dano = 5, PersonagemId = 1},
+                new Arma() { Id = 2, Nome = "Espada de Ferro", Dano = 10, PersonagemId = 2},
+                new Arma() { Id = 3, Nome = "Espada de Diamante", Dano = 15, PersonagemId = 3},
+                new Arma() { Id = 4, Nome = "Cajado de Fogo", Dano = 20, PersonagemId = 4},
+                new Arma() { Id = 5, Nome = "Cajado de Gelo", Dano = 25, PersonagemId = 5},
+                new Arma() { Id = 6, Nome = "Cajado de Relâmpago", Dano = 35, PersonagemId = 6},
+                new Arma() { Id = 7, Nome = "Lança", Dano = 999, PersonagemId = 7}
             );
-            Usuario user = new Usuario ();
-            Criptografia.CriarPasswordHash("123456", out byte[] hash, out byte []salt);
+
+            modelBuilder.Entity<PersonagemHabilidade>()
+                .HasKey(ph => new {ph.PersonagemId, ph.HabilidadeId});
+
+            modelBuilder. Entity<Habilidade>(). HasData 
+            ( 
+                new Habilidade(){Id=1, Nome="Adormecer", Dano=39}, 
+                new Habilidade(){Id=2, Nome="Congelar", Dano=41}, 
+                new Habilidade(){Id=3, Nome="Hipnotizar", Dano=37} 
+            ); 
+
+            modelBuilder.Entity<PersonagemHabilidade>().HasData 
+            ( 
+                new PersonagemHabilidade() { PersonagemId = 1, HabilidadeId =1}, 
+                new PersonagemHabilidade() { PersonagemId = 1, HabilidadeId =2}, 
+                new PersonagemHabilidade() { PersonagemId = 2, HabilidadeId =2}, 
+                new PersonagemHabilidade() { PersonagemId = 3, HabilidadeId =2}, 
+                new PersonagemHabilidade() { PersonagemId = 3, HabilidadeId =3}, 
+                new PersonagemHabilidade() { PersonagemId = 4, HabilidadeId =3}, 
+                new PersonagemHabilidade() { PersonagemId = 5, HabilidadeId =1}, 
+                new PersonagemHabilidade() { PersonagemId = 6, HabilidadeId =2}, 
+                new PersonagemHabilidade() { PersonagemId = 7, HabilidadeId =3} 
+            );
+
+            modelBuilder.Entity<Usuario>()
+                .HasMany(e => e.Personagens)
+                .WithOne(e => e.Usuario)
+                .HasForeignKey(e => e.UsuarioId)
+                .IsRequired(false);
+
+            Usuario user = new Usuario();
+            Criptografia.CriarPasswordHash("123456", out byte[] hash, out byte[] salt);
             user.Id = 1;
             user.Username = "UsuarioAdmin";
             user.PasswordString = string.Empty;
             user.PasswordHash = hash;
             user.PasswordSalt = salt;
             user.Perfil = "Admin";
-            user.Email = "seuEmail@gmail.com";
+            user.Email = "seuEmail@example.com";
             user.Latitude = -23.5200241;
             user.Longitude = -46.596498;
-            modelBuilder.Entity<Usuario>().HasData(user);
-            modelBuilder.Entity<Usuario>().Property(u =>u.Perfil).HasDefaultValue("jogador");
+            user.DataAcesso = new DateTime(2025, 1, 1);
 
-    }
-    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+            modelBuilder.Entity<Usuario>().HasData(user);
+            
+            modelBuilder.Entity<Usuario>().Property(u => u.Perfil).HasDefaultValue("Jogador");   
+        }
+
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {
             configurationBuilder.Properties<string>().HaveColumnType("Varchar").HaveMaxLength(200);
+            
         }
-        
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.ConfigureWarnings(warnings =>
+              warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
+        }
     }
 }

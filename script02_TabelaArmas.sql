@@ -24,4 +24,3 @@ VALUES (N'20250331022018_MigracaoArma', N'9.0.2');
 
 COMMIT;
 GO
-
