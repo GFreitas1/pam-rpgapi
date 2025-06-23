@@ -3,19 +3,20 @@ using RpgApi.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<DataContext>(options =>
+builder.Services.AddDbContext<DataContext>( options =>
 {
-   options.UseSqlServer(builder.Configuration.GetConnectionString("ConexaoFreitas"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ConexaoLocal"));
 });
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddEndpointsApiExplorer();
+//builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
-builder.Services.AddControllers().AddNewtonsoftJson(options => 
-options.SerializerSettings.ReferenceLoopHandling = 
-Newtonsoft.Json.ReferenceLoopHandling.Ignore 
+builder.Services.AddControllers().AddNewtonsoftJson(options =>
+        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
 );
 
 var app = builder.Build();
@@ -54,5 +55,3 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
-
-

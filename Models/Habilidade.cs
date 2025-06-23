@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using RpgApi.Models.Enuns;
-using RpgApi.Models;
+
 
 namespace RpgApi.Models
 {
@@ -14,5 +13,4 @@ namespace RpgApi.Models
         public int Dano { get; set; }
         public List<PersonagemHabilidade> PersonagemHabilidades { get; set; } = [];
     }
-    
 }
