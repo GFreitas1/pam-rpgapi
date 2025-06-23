@@ -1,3 +1,3 @@
-﻿#API do RPG feito em sala
+﻿# API do RPG feito em sala
 
-#Gabriel Freitas e Cassia Freitas
+# Gabriel Freitas e Cassia Freitas
